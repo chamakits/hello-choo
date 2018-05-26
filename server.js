@@ -50,14 +50,10 @@ function linkTo() {
 
 var dom = app.toString('/choo')         // 3.
 
-<<<<<<< HEAD
-var dom = app.toString('/choo')         // 3.
-=======
 appE.get("/choo", function(request, response) {
   response.send(dom);
 });
 appE.get("/base", (request, response) => {
   response.send(app.toString("/base"));
 });
->>>>>>> glitch
 console.log(dom)
