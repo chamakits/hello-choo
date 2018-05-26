@@ -18,5 +18,5 @@ app.route('/choo', (state, emit) => {   // 2.
   `
 })
 
-var dom = app.toString('/')         // 3.
+var dom = app.toString('/choo')         // 3.
 console.log(dom)
