@@ -1,38 +1,37 @@
 // server.js
-// where your node app starts
-
-// init project
-// var express = require('express');
-// var app = express();
-// var twilio = require('twilio');
-// var PNF = require('google-libphonenumber').PhoneNumberFormat;
-// var phoneUtil = require('google-libphonenumber').PhoneNumberUtil.getInstance();
-
 var express = require('express');
-var appE = express();
-appE.use(express.static('public'));
-appE.get("/", function (request, response) {
-  response.sendFile(__dirname + '/views/index.html');
+var app = express();
+
+var bodyParser = require('body-parser');
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded());
+app.use(bodyParser.urlencoded({extended: true}));
+
+
+app.use(express.static('public'));
+app.get("/", function (request, response) {
+    response.sendFile(__dirname + '/views/index.html');
 });
 
-var listener = appE.listen(process.env.PORT, function () {
-  console.log('Your app is listening on port ' + listener.address().port);
+var listener = app.listen(process.env.PORT, function () {
+    console.log('Your app is listening on port ' + listener.address().port);
 });
 
-var html = require('choo/html')
-var choo = require('choo')
+var html = require('choo/html');
+var choo = require('choo');
 
-var app = choo()                    // 1.
-app.route('/choo', (state, emit) => {   // 2.
-  return html`
+var chooApp = choo();
+chooApp.route('/choo', (state, emit) => {
+    return html`
     <body>Hello humans</body>
   `
 })
-app.route('/base', base);
-app.route('/linkTo', linkTo);
+chooApp.route('/base', base);
+chooApp.route('/linkTo', linkTo);
+chooApp.route('/form', form);
 
 function base() {
-  return html`
+    return html`
   <body>
     <h2>Base Header </h2>
     <a href="/linkto">
@@ -43,17 +42,36 @@ function base() {
 }
 
 function linkTo() {
-  return html`
+    return html`
   <body><h2>LinkedTo</h2></body>
   `
 }
 
-var dom = app.toString('/choo')         // 3.
+function form() {
+    return html`
+    <form id="login" action="/post-to" method="post">
+        <label for="username">username</label>
+        <input id="username" name="username" type="text">
+        <label for="password">password</label>
+        <input id="password" name="password" type="password">
+        <input type="submit" value="Login">
+    </form>
+    `
+}
 
-appE.get("/choo", function(request, response) {
-  response.send(dom);
+var dom = chooApp.toString('/choo');
+
+app.get("/choo", function (request, response) {
+    response.send(dom);
 });
-appE.get("/base", (request, response) => {
-  response.send(app.toString("/base"));
+app.get("/base", (request, response) => {
+    response.send(chooApp.toString("/base"));
 });
-console.log(dom)
+app.get("/form", (request, response) => {
+    response.send(chooApp.toString("/form"))
+});
+app.post("/post-to", (request, response) => {
+    console.log(`Request body: ${JSON.stringify(request.body)}`);
+    response.send("Ok");
+});
+console.log(dom);
