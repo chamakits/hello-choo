@@ -8,8 +8,16 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded());
 app.use(bodyParser.urlencoded({extended: true}));
 
+const TEMPLATE = {
+    'EXAMPLE_FORM': 'templates/exampleForm.html',
+    'BASE': 'templates/base.html',
+    'LINK_TO': 'templates/linkTo.html'
+};
+
 function initTemplates() {
-    let templatesToRead = ['templates/exampleForm.html'];
+    let templatesToRead = [
+        TEMPLATE.EXAMPLE_FORM, TEMPLATE.BASE, TEMPLATE.LINK_TO
+    ];
     let templates = {};
     templatesToRead.forEach((curr) => {
         let fileReadString = fs.readFileSync(curr, 'utf8');
@@ -19,7 +27,12 @@ function initTemplates() {
 }
 
 var templates = initTemplates();
-console.log(templates);
+var getTemplate = (toRetrieve) => {
+    return () => {
+        // console.log(templates[toRetrieve])
+        return templates[toRetrieve];
+    }
+};
 
 app.use(express.static('public'));
 app.get("/", function (request, response) {
@@ -38,51 +51,32 @@ chooApp.route('/choo', (state, emit) => {
     return html`
     <body>Hello humans</body>
   `
-})
-chooApp.route('/base', base);
-chooApp.route('/linkTo', linkTo);
-chooApp.route('/form', form);
+});
 
-function base() {
-    return html`
-  <body>
-    <h2>Base Header </h2>
-    <a href="/linkto">
-      Navigate To LinkTo
-    </a>
-  </body>
-  `
-}
+var sendChooTemplate = (chooPath) => {
+    return (request, response) => {
+        response.send(chooApp.toString(chooPath));
+    };
+};
 
-function linkTo() {
-    return html`
-  <body><h2>LinkedTo</h2></body>
-  `
-}
-
-function form() {
-    return html`
-    <form id="login" action="/post-to" method="post">
-        <label for="username">username</label>
-        <input id="username" name="username" type="text">
-        <label for="password">password</label>
-        <input id="password" name="password" type="password">
-        <input type="submit" value="Login">
-    </form>
-    `
-}
+chooApp.route('/base', getTemplate(TEMPLATE.BASE));
+chooApp.route('/linkTo', getTemplate(TEMPLATE.LINK_TO));
+chooApp.route('/form', getTemplate(TEMPLATE.EXAMPLE_FORM));
 
 var dom = chooApp.toString('/choo');
 
 app.get("/choo", function (request, response) {
     response.send(dom);
 });
-app.get("/base", (request, response) => {
-    response.send(chooApp.toString("/base"));
-});
-app.get("/form", (request, response) => {
-    response.send(chooApp.toString("/form"))
-});
+// app.get("/base", (request, response) => {
+//     response.send(chooApp.toString("/base"));
+// });
+// app.get("/form", (request, response) => {
+//     response.send(chooApp.toString("/form"))
+// });
+app.get("/base", sendChooTemplate("/base"));
+app.get("/form", sendChooTemplate("/form"));
+app.get("/linkTo", sendChooTemplate("/linkTo"));
 app.post("/post-to", (request, response) => {
     console.log(`Request body: ${JSON.stringify(request.body)}`);
     response.send("Ok");
