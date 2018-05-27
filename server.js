@@ -1,12 +1,25 @@
 // server.js
 var express = require('express');
 var app = express();
+var fs = require('fs');
 
 var bodyParser = require('body-parser');
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded());
 app.use(bodyParser.urlencoded({extended: true}));
 
+function initTemplates() {
+    let templatesToRead = ['templates/exampleForm.html'];
+    let templates = {};
+    templatesToRead.forEach((curr) => {
+        let fileReadString = fs.readFileSync(curr, 'utf8');
+        templates[curr] = fileReadString;
+    });
+    return templates;
+}
+
+var templates = initTemplates();
+console.log(templates);
 
 app.use(express.static('public'));
 app.get("/", function (request, response) {
